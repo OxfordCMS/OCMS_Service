@@ -118,7 +118,7 @@ def main(argv=None):
 
     dada2_dir = options.dada2_dir
     project_name = options.project_name
-    
+    report_file = options.report_file
     # make directories
     os.system(f"mkdir {project_name}; mkdir {project_name}/Reports; mkdir {project_name}/Data")
 
@@ -129,7 +129,7 @@ def main(argv=None):
     dada2_report = os.path.join(dada2_dir, "report.dir/report.html")
     
     # do the copying and renaming
-    os.system(f"cp {dada2_data} {project_name}/Data; cp {dada2_report} {project_name}/Reports; cp {report_file} {project_name}/Reports; mv {project_name}/Reports/report.html {project_name}/Reports/dada2_report.html; mv {project_name}/Data/taxa_abundances.tsv {project_name}/Data/merged_table.tsv; mv {project_name}/Data/merged_abundance_id.tsv {project_name}Data/abundance_table.tsv; mv {project_name}/Data/merged_taxonomy.tsv {project_name}Data/taxonomy_table.tsv")
+    os.system(f"cp {dada2_data} {project_name}/Data; cp {dada2_report} {project_name}/Reports; cp {report_file} {project_name}/Reports; mv {project_name}/Reports/report.html {project_name}/Reports/dada2_report.html; mv {project_name}/Data/taxa_abundances.tsv {project_name}/Data/merged_table.tsv; mv {project_name}/Data/merged_abundance_id.tsv {project_name}/Data/abundance_table.tsv; mv {project_name}/Data/merged_taxonomy.tsv {project_name}/Data/taxonomy_table.tsv")
 
     # build file description
     buildFileDescription(project_name)
