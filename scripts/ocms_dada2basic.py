@@ -50,6 +50,7 @@ import sys
 import os
 import cgatcore.experiment as E
 import glob
+from datetime import datetime
 
 def buildFileDescription(project_name):
     '''
@@ -61,39 +62,32 @@ def buildFileDescription(project_name):
 
     |-{project_name}
     |---Files.txt
-    |---Methods.txt
     |------Reports
+    |---------analysis_report.html
     |---------dada2_report.html
-    |---------fastqc_report.html
     |------Data
-    |---------taxa_abundances.tsv
-    |---------species_abundance.tsv
-    |---------genus_abundance.tsv
-    |---------family_abundance.tsv
-    |---------order_abundance.tsv
-    |---------class_abundance.tsv
-    |---------phylum_abundance.tsv
-    |---------merged_abundance_id.map
+    |---------abundance_table.tsv
+    |---------merged_table.tsv
+    |---------taxonomy_table.tsv
 
     Description
     ------------
 
+    analysis_report.html -> Summary of the analysis performed, with feedback from OCMS
     dada2_report.html -> Metrics on the dada2 run including reads input and output and taxonomic assignments.
-    fastqc_report.html -> Quality summary of raw sequencing data.
-    taxa_abundances.tsv -> Read counts for each amplicon sequence variant (ASV)(rows) detected per sample (columns).
-    species_abundances.tsv -> Read counts for each species detected i.e. ASVs collapsed at the level of species annotation.
-    genus_abundances.tsv -> Read counts for each genus detected i.e. ASVs collapsed at the level of genus annotation.
-    family_abundances.tsv -> Read counts for each family detected i.e. ASVs collapsed at the level of family annotation.
-    order_abundances.tsv -> Read counts for each order detected i.e. ASVs collapsed at the level of order annotation.
-    class_abundances.tsv -> Read counts for each class detected i.e. ASVs collapsed at the level of class annotation.
-    phylum_abundances.tsv -> Read counts for each class detected i.e. ASVs collapsed at the level of phylum annotation.
-    merged_abundance_id.map -> Text file that maps the ASV identifier (arbitrary number) to the original identified sequence byt dada2.
-    methods.txt -> Methods of data analysis
+    abundance_table.tsv -> Read counts for each amplicon sequence variant (ASV)(rows) detected per sample (columns).
+    taxonomy_table.tsv -> Sequence and taxonomic classification assigned to each ASV
+    merged_table.tsv -> Merge of abundance and taxonomy table, while dropping sequence and ASV identifiers.
 
     """
-    outf = open(f"{project_name}/Files.txt", "w")
-    outf.write(file_layout)
-    outf.close()
+    with open(f"{project_name}/Files.txt", "w") as outf:
+        # write text
+        outf.write(file_layout)
+
+        # add date created
+        stat = datetime.today().strftime('%d-%m-%Y')
+        outf.write("file created: ")
+        outf.write(stat)
 
 ############################################
 ############################################
@@ -113,8 +107,8 @@ def main(argv=None):
 
     parser.add_option("--dada2-dir", dest="dada2_dir", type="string",
                       help="supply dada2 run directory")
-    parser.add_option("--fastqc-dir", dest="fastqc_dir", type="string",
-                      help="supply fastqc run directory")
+    parser.add_option("--report-file", dest="report_file", type="string",
+                      help="supply analysis report directory")
     parser.add_option("--project-name", dest="project_name", type="string",
                       help="project name used to create master directory")
 
@@ -123,23 +117,19 @@ def main(argv=None):
     (options, args) = E.start(parser, argv=argv)
 
     dada2_dir = options.dada2_dir
-    fastqc_dir = options.fastqc_dir
     project_name = options.project_name
     
     # make directories
-    os.system(f"mkdir {project_name}; mkdir {project_name}/Reports; mkdir {project_name}/data")
+    os.system(f"mkdir {project_name}; mkdir {project_name}/Reports; mkdir {project_name}/Data")
 
     # get all of the dada2 data
-    dada2_data = [os.path.join(dada2_dir, "abundance.dir/taxa_abundances.tsv"), os.path.join(dada2_dir, "abundance.dir/merged_abundance_id.map")] 
-    dada2_data = dada2_data + glob.glob(os.path.join(dada2_dir, "taxonomy_abundances.dir/*"))
+    dada2_data = [os.path.join(dada2_dir, "abundance.dir/taxa_abundances.tsv"), os.path.join(dada2_dir, "abundance.dir/merged_abundance_id.tsv")] 
+    dada2_data = dada2_data + glob.glob(os.path.join(dada2_dir, "taxonomy.dir/merged_taxonomy.tsv"))
     dada2_data = " ".join(dada2_data)
     dada2_report = os.path.join(dada2_dir, "report.dir/report.html")
-
-    # do the copying
-    os.system(f"cp {dada2_data} {project_name}/data; cp {dada2_report} {project_name}/Reports; mv {project_name}/Reports/report.html {project_name}/Reports/dada2_report.html")
-
-    # copy the fastq file over
-    os.system(f"cp {fastqc_dir}/MultiQC_report.dir/multiqc_report.html {project_name}/Reports; mv {project_name}/Reports/multiqc_report.html {project_name}/Reports/fastqc_report.html")
+    
+    # do the copying and renaming
+    os.system(f"cp {dada2_data} {project_name}/Data; cp {dada2_report} {project_name}/Reports; cp {report_file} {project_name}/Reports; mv {project_name}/Reports/report.html {project_name}/Reports/dada2_report.html; mv {project_name}/Data/taxa_abundances.tsv {project_name}/Data/merged_table.tsv; mv {project_name}/Data/merged_abundance_id.tsv {project_name}Data/abundance_table.tsv; mv {project_name}/Data/merged_taxonomy.tsv {project_name}Data/taxonomy_table.tsv")
 
     # build file description
     buildFileDescription(project_name)
