@@ -108,7 +108,7 @@ def main(argv=None):
     parser.add_option("--dada2-dir", dest="dada2_dir", type="string",
                       help="supply dada2 run directory")
     parser.add_option("--report-file", dest="report_file", type="string",
-                      help="supply analysis report directory")
+                      help="supply analysis report file")
     parser.add_option("--project-name", dest="project_name", type="string",
                       help="project name used to create master directory")
 
@@ -119,6 +119,8 @@ def main(argv=None):
     dada2_dir = options.dada2_dir
     project_name = options.project_name
     report_file = options.report_file
+    current_date = datetime.today().strftime('%d-%m-%Y')
+    
     # make directories
     os.system(f"mkdir {project_name}; mkdir {project_name}/Reports; mkdir {project_name}/Data")
 
@@ -133,6 +135,9 @@ def main(argv=None):
 
     # build file description
     buildFileDescription(project_name)
+
+    # compress export folder
+    os.system(f"tar -czf {project_name}_{current_date}.tar.gz {project_name}")
 
     # write footer and output benchmark information.
     E.stop()
